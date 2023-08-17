@@ -14,6 +14,9 @@ from tqdm import tqdm
 
 from utils import check_directory, get_videos
 from config import ROOT_DIR, DATASET_PATH, FACES_PATH, RESULTS_PATH
+from random import randint
+from datetime import datetime, timedelta
+
 
 
 def init_worker():
@@ -70,6 +73,7 @@ def video_face_cropper(dataset):
                     ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
                                                                      s="%sx%s" % (260, 330)).run()
 
+                    """
                     command = f"ffmpeg -i {video} -filter_complex '[0:v]split=2[blur][vid];[" \
                               f"blur]scale=1080:1080:force_original_aspect_ratio=increase,crop=1080:1080," \
                               f"boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\," \
@@ -79,18 +83,40 @@ def video_face_cropper(dataset):
 
                     command = f"ffmpeg -i /tmp/tmp.mp4 -filter:v 'crop=9/16*ih:ih' /tmp/tmp2.mp4"
                     os.system(command)
+                    """
+                    ###make tmp2
+                    command = f"ffmpeg -crop 0x0x420x420 -c:v h264_cuvid -i {video} -c:a copy -c:v h264_nvenc -b:v 5M /tmp/tmp_square.mp4" #makes square
+                    os.system(command)
 
+                    start_sec = randint(0,14000)
+                    yt_start=(timedelta(seconds=start_sec))
+
+                    #command = f"ffmpeg -i file:/root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 90 -filter:v \"crop=540:420,scale=1080:840\" -c:a copy /tmp/tmp_back.mp4"# makkes background
+                    #os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -i /root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 90 -c:a copy -c:v h264_nvenc -b:v 5M /tmp/tmp_back1.mp4"# makkes background
+                    os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i /tmp/tmp_back1.mp4 -c:a copy -c:v h264_nvenc -b:v 5M /tmp/tmp_back.mp4"# makkes background
+                    os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp_square.mp4 -c:v h264_cuvid -i /tmp/tmp_back.mp4 -vsync 2 -filter_complex vstack -map 0:a -c:v h264_nvenc /tmp/tmp2.mp4"
+                    os.system(command)
+
+                    #joins tmp2 with facecam into tmo_video
                     tmp_video = f"/tmp/final-{uuid.uuid1()}.mp4"
-                    command = f"ffmpeg -i /tmp/tmp2.mp4 -i {file_name} -filter_complex \"[1]trim=end_frame=1,  " \
+                    command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"[1]trim=end_frame=1,  " \
                               f"geq='st(3,pow(X-(W/2),2)+pow(Y-(H/2),2));if(lte(ld(3),pow(min(W/2,H/2),2)),255," \
                               f"0)':10:10,setpts=N/FRAME_RATE/TB[mask];  [1][mask]alphamerge[cutout];  [0][" \
-                              f"cutout]overlay=x=W/2-w/2:y=20[v];  [0][1]amix=2[a]\" -map \"[v]\" -map \"[a]\"  " \
+                              f"cutout]overlay=x=W/2-w/2:y=20[v];  [0][1]amix=2[a]\" -map \"[v]\" -map \"[a]\" -c:v h264_nvenc " \
                               f"{tmp_video} "
                     os.system(command)
+                    
 
                     font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
                     game_tag = re.findall(r'videos/(.*)-.*', video)[0]
-                    command = f"magick -background '#9D38FE' -size x200 -fill white -font {font} -gravity center " \
+
+                    command = f"convert -background '#9D38FE' -size x200 -fill white -font {font} -gravity center " \
                               f"-pointsize 40 label:{game_tag.upper()} -extent 110%x /tmp/tag.png "
                     os.system(command)
 
@@ -105,11 +131,14 @@ def video_face_cropper(dataset):
                     os.system(command)
 
                     final_file_name = f"{ROOT_DIR}/{FACES_PATH}/final-{uuid.uuid1()}.mp4"
-                    command = f"ffmpeg -i {tmp_video} -i /tmp/tag-rounded-resized.png -filter_complex \"[0:v][" \
-                              f"1:v] overlay=W/2-w/2:H/1.2+20'\" -pix_fmt yuv420p -c:a copy {final_file_name}"
+                    command = f"ffmpeg -c:v h264_cuvid -i {tmp_video} -i /tmp/tag-rounded-resized.png -filter_complex \"[0:v][" \
+                              f"1:v] overlay=W/2-w/2:H/1.2+20'\" -pix_fmt yuv420p -c:a copy -c:v h264_nvenc {final_file_name}"
                     os.system(command)
 
+                    ####ffmpeg -i input -t 5 -f lavfi -i anullsrc -filter_complex "color=duration=5:color=blue[bg];[bg][0]scale2ref[bg2][main];[bg2]setsar=1,drawtext=text='Ending':fontsize=20:x=(w-text_w)/2:y=(h-text_h)/2[text];[main][0:a][text][1]concat=n=2:v=1:a=1[v][a]" -map "[v]" -map "[a]" output.mp4
+
                     # Clean tmp repository & face cropped video
+                    """
                     os.remove(os.path.join("/tmp", "tmp.mp4"))
                     os.remove(os.path.join("/tmp", "tmp2.mp4"))
                     os.remove(os.path.join("/tmp", "tag.png"))
@@ -118,6 +147,7 @@ def video_face_cropper(dataset):
                     os.remove(os.path.join("/tmp", "tag-rounded-resized.png"))
                     os.remove(tmp_video)
                     os.remove(file_name)
+                    """
                     cap.release()
                     break
             else:
@@ -130,7 +160,7 @@ if __name__ == "__main__":
     num_process = 1
 
     # Download videos
-    download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
+    ##download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
 
     # Check faces directory
     check_directory(f"{ROOT_DIR}/{RESULTS_PATH}")
