@@ -71,7 +71,7 @@ def video_face_cropper(dataset):
                     stream = ffmpeg.input(video)
                     file_name = f"{ROOT_DIR}/{FACES_PATH}/{uuid.uuid1()}.mp4"
                     ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
-                                                                     s="%sx%s" % (260, 330)).run()
+                                                                     s="%sx%s" % (600, 500)).run()
 
                     """
                     command = f"ffmpeg -i {video} -filter_complex '[0:v]split=2[blur][vid];[" \
@@ -105,13 +105,21 @@ def video_face_cropper(dataset):
 
                     #joins tmp2 with facecam into tmo_video
                     tmp_video = f"/tmp/final-{uuid.uuid1()}.mp4"
+                    command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
+                    os.system(command)
+                    
+
+                    #joins tmp2 with facecam into tmo_video old circle
+                    """
+                    tmp_video = f"/tmp/final-{uuid.uuid1()}.mp4"
                     command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"[1]trim=end_frame=1,  " \
                               f"geq='st(3,pow(X-(W/2),2)+pow(Y-(H/2),2));if(lte(ld(3),pow(min(W/2,H/2),2)),255," \
                               f"0)':10:10,setpts=N/FRAME_RATE/TB[mask];  [1][mask]alphamerge[cutout];  [0][" \
                               f"cutout]overlay=x=W/2-w/2:y=20[v];  [0][1]amix=2[a]\" -map \"[v]\" -map \"[a]\" -c:v h264_nvenc " \
                               f"{tmp_video} "
-                    os.system(command)
-                    
+                    os.system(command) #y=50[v]
+                    """
+
 
                     font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
                     game_tag = re.findall(r'videos/(.*)-.*', video)[0]
