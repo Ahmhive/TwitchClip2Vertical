@@ -93,4 +93,5 @@ def main(vodlinks):
         command = command1
         print(command)
     
-        #os.system(command)
+        os.system(command)
+ 
