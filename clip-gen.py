@@ -50,28 +50,31 @@ def video_face_cropper(dataset):
 
                     # Face detection
                     face = face_detector(frame, cv=True)
-                    if len(face) == 0:
-                        # print("!! NO face is detected!")
-                        continue
                     if len(face) > 1:
                         # print("!! Two face detected!")
                         continue
+                    """    
+                    if len(face) == 0:
+                        # print("!! NO face is detected!")
+                        continue
+                    """
+                    
+                    if len(face) == 1:
+                        box, landmarks, confidence = face[0]
 
-                    box, landmarks, confidence = face[0]
+                        # Add Margin
+                        (x, y, x2, y2) = box
+                        margin = int(0.3 * (x2 - x))
+                        x = max(x - margin, 0)
+                        x2 = min(x2 + margin, frame.shape[1])
+                        y = max(y - margin, 0)
+                        y2 = min(y2 + margin, frame.shape[0])
 
-                    # Add Margin
-                    (x, y, x2, y2) = box
-                    margin = int(0.3 * (x2 - x))
-                    x = max(x - margin, 0)
-                    x2 = min(x2 + margin, frame.shape[1])
-                    y = max(y - margin, 0)
-                    y2 = min(y2 + margin, frame.shape[0])
-
-                    # Save cropped video with sound
-                    stream = ffmpeg.input(video)
-                    file_name = f"{ROOT_DIR}/{FACES_PATH}/{uuid.uuid1()}.mp4"
-                    ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
-                                                                     s="%sx%s" % (600, 500)).run()
+                        # Save cropped video with sound
+                        stream = ffmpeg.input(video)
+                        file_name = f"{ROOT_DIR}/{FACES_PATH}/{uuid.uuid1()}.mp4"
+                        ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
+                                                                        s="%sx%s" % (600, 500)).run()
 
                     """
                     command = f"ffmpeg -i {video} -filter_complex '[0:v]split=2[blur][vid];[" \
@@ -102,11 +105,14 @@ def video_face_cropper(dataset):
 
                     command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp_square.mp4 -c:v h264_cuvid -i /tmp/tmp_back.mp4 -vsync 2 -filter_complex vstack -map 0:a -c:v h264_nvenc /tmp/tmp2.mp4"
                     os.system(command)
-
-                    #joins tmp2 with facecam into tmo_video
-                    tmp_video = f"/tmp/final-{uuid.uuid1()}.mp4"
-                    command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
-                    os.system(command)
+                    
+                    if len(face) == 1:
+                        #joins tmp2 with facecam into tmo_video
+                        tmp_video = f"/tmp/final-{uuid.uuid1()}.mp4"
+                        command = f"ffmpeg -c:v h264_cuvid -i /tmp/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
+                        os.system(command)
+                    else:
+                        tmp_video = "/tmp/tmp2.mp4"
                     
 
                     #joins tmp2 with facecam into tmo_video old circle
