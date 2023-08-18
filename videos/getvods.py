@@ -79,7 +79,7 @@ with open('cliptime.csv') as csvfile:
     csvdata = list(reader)
 
 
-for clip_no in range(0:59):
+for clip_no in range(0,59):
     link = csvdata[clip_no][0]
     #Mid_time = csvdata[clip_no][1]
     start_time = csvdata[clip_no][2]
@@ -88,5 +88,5 @@ for clip_no in range(0:59):
     s_t = start_time[11:19]
     e_t = end_time[11:19]
     #twitch-dl download <videos> -q 720p -s hh:mm:ss -e hh:mm:ss
-    command = f"twitch-dl download {link} -f mp4 -q source -s {s_t} -e {e_t}"+"-o {channel}-{time}.{format}"
+    command = f"twitch-dl download {link} -f mp4 -q source -s {s_t} -e {e_t}"+" -o {channel}-"+f"{s_t}"+".{format}"
     os.system(command)
