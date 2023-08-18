@@ -149,15 +149,17 @@ def video_face_cropper(dataset):
                     ####ffmpeg -i input -t 5 -f lavfi -i anullsrc -filter_complex "color=duration=5:color=blue[bg];[bg][0]scale2ref[bg2][main];[bg2]setsar=1,drawtext=text='Ending':fontsize=20:x=(w-text_w)/2:y=(h-text_h)/2[text];[main][0:a][text][1]concat=n=2:v=1:a=1[v][a]" -map "[v]" -map "[a]" output.mp4
 
                     # Clean tmp repository & face cropped video
-                    
-                    os.remove(os.path.join("/tmp", "tmp.mp4"))
-                    os.remove(os.path.join("/tmp", "tmp2.mp4"))
-                    os.remove(os.path.join("/tmp", "tag.png"))
-                    os.remove(os.path.join("/tmp", "logo-with-background.png"))
-                    os.remove(os.path.join("/tmp", "tag-with-logo.png"))
-                    os.remove(os.path.join("/tmp", "tag-rounded-resized.png"))
-                    os.remove(tmp_video)
-                    os.remove(file_name)
+                    try:
+                        os.remove(os.path.join("/tmp", "tmp_back.mp4"))
+                        os.remove(os.path.join("/tmp", "tmp_back1.mp4"))
+                        os.remove(os.path.join("/tmp", "tmp_square.mp4"))
+                        os.remove(os.path.join("/tmp", "tmp2.mp4"))
+                        os.remove(os.path.join("/tmp", "tag.png"))
+                        os.remove(os.path.join("/tmp", "logo-with-background.png"))
+                        os.remove(os.path.join("/tmp", "tag-with-logo.png"))
+                        os.remove(os.path.join("/tmp", "tag-rounded-resized.png"))
+                        os.remove(tmp_video)
+                        os.remove(file_name)
                     
                     cap.release()
                     break
