@@ -49,17 +49,15 @@ def video_face_cropper(dataset):
                 if frame_no in random_frames:
 
                     # Face detection
+                    
                     face = face_detector(frame, cv=True)
+                    """
                     if len(face) > 1:
                         # print("!! Two face detected!")
                         continue
                     """    
-                    if len(face) == 0:
-                        # print("!! NO face is detected!")
-                        continue
-                    """
-                    
                     if len(face) == 1:
+                        # print("!! NO face is detected!")
                         box, landmarks, confidence = face[0]
 
                         # Add Margin
@@ -113,7 +111,6 @@ def video_face_cropper(dataset):
                         os.system(command)
                     else:
                         tmp_video = "/tmp/tmp2.mp4"
-                    
 
                     #joins tmp2 with facecam into tmo_video old circle
                     """
