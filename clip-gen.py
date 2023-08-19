@@ -160,7 +160,9 @@ def video_face_cropper(dataset):
                         os.remove(os.path.join("/tmp", "tag-rounded-resized.png"))
                         os.remove(tmp_video)
                         os.remove(file_name)
-                    
+                    except:
+                        nothing11= True
+                        
                     cap.release()
                     break
             else:
