@@ -52,7 +52,7 @@ def find_peak_times(vod):
 
 
 
-vod_links = (sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5])
+vod_links = (sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
 
 file_1= 'cliptime.csv'
 
