@@ -172,7 +172,7 @@ def video_face_cropper(dataset):
 
 
 if __name__ == "__main__":
-    num_process = 1
+    num_process = 4
 
     # Download videos
     ##download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
