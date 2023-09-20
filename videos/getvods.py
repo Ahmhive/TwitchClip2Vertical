@@ -89,7 +89,7 @@ for clip_no in range(0,59):
     s_t = start_time[11:19]
     e_t = end_time[11:19]
     #twitch-dl download <videos> -q 720p -s hh:mm:ss -e hh:mm:ss
-    command1 = f"twitch-dl download {link} -f mp4 -q source -s {s_t} -e {e_t}"+" -o {channel}-"+f"{clip_no}"+".{format}"
+    command1 = f"twitch-dl download {link} -f mp4 -q source -s {s_t} -e {e_t}"+" -o {channel}-"+f"{clip_no}_"+".{format}"
     command = command1
     print(command)
 
