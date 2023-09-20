@@ -62,8 +62,8 @@ with open(file_1, 'w+') as filehandle:
 for vod in vod_links:
     peak_times = find_peak_times(vod)
     for time in peak_times:
-        time_start = time + timedelta(seconds=45)
-        time_end = time - timedelta(seconds=45) 
+        time_start = time + timedelta(seconds=29)
+        time_end = time - timedelta(seconds=29) 
         try:
             with open(file_1, 'a+') as filehandle: ##a+ to keep old w+ to start new
                 filehandle.write('%s,%s,%s,%s\n' % (vod, time, time_start, time_end))
