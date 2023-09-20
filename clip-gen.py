@@ -126,6 +126,7 @@ def video_face_cropper(dataset):
 
                     font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
                     game_tag = re.findall(r'videos/(.*)-.*', video)[0]
+                    namenum_tag = re.findall(r'videos/(.*)_.*', video)[0]
 
                     command = f"convert -background white -size x200 -fill '#9D38FE' -font {font} -gravity center " \
                               f"-pointsize 40 label:{game_tag.upper()} -extent 110%x /tmp/tag.png "
@@ -141,7 +142,7 @@ def video_face_cropper(dataset):
                     command = f"convert /tmp/tag-with-logo.png -resize 300x300 /tmp/tag-rounded-resized.png"
                     os.system(command)
 
-                    final_file_name = f"{ROOT_DIR}/{FACES_PATH}/final-{video}.mp4"
+                    final_file_name = f"{ROOT_DIR}/{FACES_PATH}/final-{namenum_tag}.mp4"
                     command = f"ffmpeg -c:v h264_cuvid -i {tmp_video} -i /tmp/tag-rounded-resized.png -filter_complex \"[0:v][" \
                               f"1:v] overlay=W/2-w/2:H/1.2+20'\" -pix_fmt yuv420p -c:a copy -c:v h264_nvenc {final_file_name}"
                     os.system(command)
