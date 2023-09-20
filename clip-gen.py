@@ -127,7 +127,7 @@ def video_face_cropper(dataset):
                     font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
                     game_tag = re.findall(r'videos/(.*)-.*', video)[0]
 
-                    command = f"convert -background '#9D38FE' -size x200 -fill white -font {font} -gravity center " \
+                    command = f"convert -background white -size x200 -fill '#9D38FE' -font {font} -gravity center " \
                               f"-pointsize 40 label:{game_tag.upper()} -extent 110%x /tmp/tag.png "
                     os.system(command)
 
