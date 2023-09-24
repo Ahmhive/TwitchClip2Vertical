@@ -92,7 +92,7 @@ def video_face_cropper(dataset):
                     os.system(command)
                     """
                     ###make tmp2
-                    command = f"ffmpeg -crop 0x0x420x420 -c:v h264_cuvid -i {video} -c:a copy -c:v h264_nvenc -b:v 5M /tmp/{q}/tmp_square.mp4" #makes square
+                    command = f"ffmpeg -crop 0x0x420x420 -c:v h264_cuvid -i {video} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M /tmp/{q}/tmp_square.mp4" #makes square
                     os.system(command)
 
                     start_sec = randint(0,14000)
