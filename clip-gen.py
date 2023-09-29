@@ -87,16 +87,7 @@ def video_face_cropper(dataset):
 
                     start_sec = randint(0,14000)
                     yt_start=(timedelta(seconds=start_sec))
-
-                    #command = f"ffmpeg -i file:/root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 90 -filter:v \"crop=540:420,scale=1080:840\" -c:a copy {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
-                    #os.system(command)
-                    """
-                    command = f"ffmpeg -c:v h264_cuvid -i {ROOT_DIR}/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back1.mp4"# makkes background
-                    os.system(command)
-
-                    command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i {ROOT_DIR}/tmp/{q}/tmp_back1.mp4 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
-                    os.system(command)
-                    """
+                    
 
                     command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i {ROOT_DIR}/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
                     os.system(command)
@@ -154,8 +145,9 @@ def video_face_cropper(dataset):
 if __name__ == "__main__":
     num_process = 4
 
-    # Download videos
-    ##download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
+    # Download background
+    command = f"yt-dlp  -o background.mp4 -f mp4  https://www.youtube.com/embed/RMeYn4E5WMY"
+    os.system(command)
 
     # Check faces directory
     check_directory(f"{ROOT_DIR}/{RESULTS_PATH}")
