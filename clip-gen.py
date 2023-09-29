@@ -9,7 +9,6 @@ import ffmpeg
 import numpy as np
 import cv2
 import multiprocessing
-from multiprocessing import Process
 from batch_face import RetinaFace
 from tqdm import tqdm
 
@@ -17,239 +16,156 @@ from utils import check_directory, get_videos
 from config import ROOT_DIR, DATASET_PATH, FACES_PATH, RESULTS_PATH
 from random import randint
 from datetime import datetime, timedelta
-import time
-from threading import Thread
-from time import sleep
 
 
+
+def init_worker():
+    print('Creating networks and loading parameters')
+    global face_detector
+    face_detector = RetinaFace()
 
 
 def video_face_cropper(dataset):
-    ##global face_detector, processed_videos
+    global face_detector, processed_videos
 
-    face_detector = RetinaFace()
-    print(dataset)
-
-    sleepnum = randint(10,60)
-    sleep(sleepnum)
-
-    q = randint(10,9000)
-    os.system(f"mkdir /tmp/{q}/")
     # Loop on videos in dataset
     for video in tqdm(dataset):
+                    
+        q = randint(10,9000)
+        os.system(f"rm -r {ROOT_DIR}/tmp/{q}")
+        os.system(f"mkdir {ROOT_DIR}/tmp/{q}/")
 
-        ##print(video)
         random_frames = np.random.randint(1, 199, 10)
         frame_no = 0
 
         cap = cv2.VideoCapture(video)
         cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 0)
 
-        frame_no += 1
+        while cap.isOpened():
+            frame_no += 1
 
-        # remove tmp if exist
-        os.system(f"rm -rf /tmp/{q}/tmp*")
+            # remove tmp if exist
+            ##os.system(f"rm -rf /tmp/tmp*")
 
-        ret, frame = cap.read()
-        if ret:
-            # Get random frame
-            if frame_no in random_frames:
+            ret, frame = cap.read()
+            if ret:
+                # Get random frame
+                if frame_no in random_frames:
 
-                # Face detection
-                
-                face = face_detector(frame, cv=True)
-
-                if len(face) == 1:
-                    # print("!! NO face is detected!")
-                    box, landmarks, confidence = face[0]
-
-                    # Add Margin
-                    (x, y, x2, y2) = box
-                    margin = int(0.3 * (x2 - x))
-                    x = max(x - margin, 0)
-                    x2 = min(x2 + margin, frame.shape[1])
-                    y = max(y - margin, 0)
-                    y2 = min(y2 + margin, frame.shape[0])
-
-                    # Save cropped video with sound
-                    stream = ffmpeg.input(video)
-                    file_name = f"{ROOT_DIR}/{FACES_PATH}/{uuid.uuid1()}.mp4"
-                    ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
-                                                                    s="%sx%s" % (600, 500)).run()
-                cap.release()
-                cv2.destroyAllWindows()
-
-                """
-                command = f"ffmpeg -i {video} -filter_complex '[0:v]split=2[blur][vid];[" \
-                            f"blur]scale=1080:1080:force_original_aspect_ratio=increase,crop=1080:1080," \
-                            f"boxblur=luma_radius=min(h\,w)/20:luma_power=1:chroma_radius=min(cw\," \
-                            f"ch)/20:chroma_power=1[bg];[vid]scale=1080:1080:force_original_aspect_ratio=decrease[" \
-                            f"ov];[bg][ov]overlay=(W-w)/2:(H-h)/1.6' /tmp/{q}/tmp.mp4 "
-                os.system(command)
-
-                command = f"ffmpeg -i /tmp/{q}/tmp.mp4 -filter:v 'crop=9/16*ih:ih' /tmp/{q}/tmp2.mp4"
-                os.system(command)
-                """
-                ###make tmp2
-                command = f"ffmpeg -crop 0x0x420x420 -c:v h264_cuvid -i {video} -c:a copy -c:v h264_nvenc -b:v 5M /tmp/{q}/tmp_square.mp4" #makes square
-                os.system(command)
-
-                start_sec = randint(0,14000)
-                yt_start=(timedelta(seconds=start_sec))
-
-                #command = f"ffmpeg -i file:/root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 90 -filter:v \"crop=540:420,scale=1080:840\" -c:a copy /tmp/{q}/tmp_back.mp4"# makkes background
-                #os.system(command)
-
-                command = f"ffmpeg -c:v h264_cuvid -i /root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M /tmp/{q}/tmp_back1.mp4"# makkes background
-                os.system(command)
-
-                command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i /tmp/{q}/tmp_back1.mp4 -c:a copy -c:v h264_nvenc -b:v 5M /tmp/{q}/tmp_back.mp4"# makkes background
-                os.system(command)
-
-                command = f"ffmpeg -c:v h264_cuvid -i /tmp/{q}/tmp_square.mp4 -c:v h264_cuvid -i /tmp/{q}/tmp_back.mp4 -vsync 2 -filter_complex vstack -map 0:a -c:v h264_nvenc /tmp/{q}/tmp2.mp4"
-                os.system(command)
-                
-                if len(face) == 1:
-                    #joins tmp2 with facecam into tmo_video
-                    tmp_video = f"/tmp/{q}/final-{uuid.uuid1()}.mp4"
-                    command = f"ffmpeg -c:v h264_cuvid -i /tmp/{q}/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
-                    os.system(command)
-                else:
-                    tmp_video = f"/tmp/{q}/tmp2.mp4"
-
-                #joins tmp2 with facecam into tmo_video old circle
-                """
-                tmp_video = f"/tmp/{q}/final-{uuid.uuid1()}.mp4"
-                command = f"ffmpeg -c:v h264_cuvid -i /tmp/{q}/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"[1]trim=end_frame=1,  " \
-                            f"geq='st(3,pow(X-(W/2),2)+pow(Y-(H/2),2));if(lte(ld(3),pow(min(W/2,H/2),2)),255," \
-                            f"0)':10:10,setpts=N/FRAME_RATE/TB[mask];  [1][mask]alphamerge[cutout];  [0][" \
-                            f"cutout]overlay=x=W/2-w/2:y=20[v];  [0][1]amix=2[a]\" -map \"[v]\" -map \"[a]\" -c:v h264_nvenc " \
-                            f"{tmp_video} "
-                os.system(command) #y=50[v]
-                """
-
-
-                font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
-                game_tag = re.findall(r'videos/(.*)-.*', video)[0]
-                namenum_tag = re.findall(r'videos/(.*)_.*', video)[0]
-
-                command = f"convert -background white -size x200 -fill '#9D38FE' -font {font} -gravity center " \
-                            f"-pointsize 40 label:{game_tag.upper()} -extent 110%x /tmp/{q}/tag.png "
-                os.system(command)
-
-                command = f"convert -gravity east {ROOT_DIR}/resources/twitch.png -background white -resize " \
-                            f"100x100 -extent 180x200 -gravity east /tmp/{q}/logo-with-background.png "
-                os.system(command)
-
-                command = f"convert +append /tmp/{q}/logo-with-background.png /tmp/{q}/tag.png /tmp/{q}/tag-with-logo.png"
-                os.system(command)
-
-                command = f"convert /tmp/{q}/tag-with-logo.png -resize 300x300 /tmp/{q}/tag-rounded-resized.png"
-                os.system(command)
-
-                final_file_name = f"{ROOT_DIR}/{FACES_PATH}/final-{namenum_tag}.mp4"
-                command = f"ffmpeg -c:v h264_cuvid -i {tmp_video} -i /tmp/{q}/tag-rounded-resized.png -filter_complex \"[0:v][" \
-                            f"1:v] overlay=W/2-w/2:H/1.2+20'\" -pix_fmt yuv420p -t 58 -c:a copy -c:v h264_nvenc {final_file_name}"
-                os.system(command)
-                #"#e2cfea" background
-
-                ####ffmpeg -i input -t 5 -f lavfi -i anullsrc -filter_complex "color=duration=5:color=blue[bg];[bg][0]scale2ref[bg2][main];[bg2]setsar=1,drawtext=text='Ending':fontsize=20:x=(w-text_w)/2:y=(h-text_h)/2[text];[main][0:a][text][1]concat=n=2:v=1:a=1[v][a]" -map "[v]" -map "[a]" output.mp4
-
-                # Clean tmp repository & face cropped video
-                try:
-                    os.remove(os.path.join(f"/tmp/{q}/", "tmp_back.mp4"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tmp_back1.mp4"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tmp_square.mp4"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tmp2.mp4"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tag.png"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "logo-with-background.png"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tag-with-logo.png"))
-                    os.remove(os.path.join(f"/tmp/{q}/", "tag-rounded-resized.png"))
-                    os.remove(tmp_video)
-                    os.remove(file_name)
-                except:
-                    nothing11= True
+                    # Face detection
                     
-                ##cap.release()
+                    face = face_detector(frame, cv=True)
+                    """
+                    if len(face) > 1:
+                        # print("!! Two face detected!")
+                        continue
+                    """    
+                    if len(face) == 1:
+                        # print("!! NO face is detected!")
+                        box, landmarks, confidence = face[0]
+
+                        # Add Margin
+                        (x, y, x2, y2) = box
+                        margin = int(0.3 * (x2 - x))
+                        x = max(x - margin, 0)
+                        x2 = min(x2 + margin, frame.shape[1])
+                        y = max(y - margin, 0)
+                        y2 = min(y2 + margin, frame.shape[0])
+
+                        # Save cropped video with sound
+                        stream = ffmpeg.input(video)
+                        file_name = f"{ROOT_DIR}/tmp/{q}/{uuid.uuid1()}.mp4"
+                        ffmpeg.crop(stream, x, y, x2 - x, y2 - y).output(stream.audio, file_name,
+                                                                        s="%sx%s" % (600, 500)).run()
+
+                    ###make tmp2
+                    command = f"ffmpeg -c:v h264_cuvid -resize 1920x1080 -i {video} -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_square1.mp4" #makes square
+                    os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -crop 0x0x420x420 -i {ROOT_DIR}/tmp/{q}/tmp_square1.mp4 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_square.mp4" #makes square
+                    os.system(command)
+
+                    start_sec = randint(0,14000)
+                    yt_start=(timedelta(seconds=start_sec))
+
+                    #command = f"ffmpeg -i file:/root/TwitchClip2Vertical/background.mp4 -ss {yt_start} -t 90 -filter:v \"crop=540:420,scale=1080:840\" -c:a copy {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
+                    #os.system(command)
+                    """
+                    command = f"ffmpeg -c:v h264_cuvid -i {ROOT_DIR}/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back1.mp4"# makkes background
+                    os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i {ROOT_DIR}/tmp/{q}/tmp_back1.mp4 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
+                    os.system(command)
+                    """
+
+                    command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i {ROOT_DIR}/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
+                    os.system(command)
+
+                    command = f"ffmpeg -c:v h264_cuvid -i {ROOT_DIR}/tmp/{q}/tmp_square.mp4 -c:v h264_cuvid -i {ROOT_DIR}/tmp/{q}/tmp_back.mp4 -vsync 2 -filter_complex vstack -map 0:a -c:v h264_nvenc {ROOT_DIR}/tmp/{q}/tmp2.mp4"
+                    os.system(command)
+                    
+                    ###face =5555
+                    if face== 1:
+                        #joins tmp2 with facecam into tmo_video
+                        tmp_video = f"{ROOT_DIR}/tmp/{q}/tmp3.mp4"
+                        command = f"ffmpeg -c:v h264_cuvid -i {ROOT_DIR}/tmp/{q}/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
+                        os.system(command)
+                    else:
+                        tmp_video = f"{ROOT_DIR}/tmp/{q}/tmp2.mp4"
+
+                    font = f"{ROOT_DIR}/resources/Metropolis-Black.otf"
+                    game_tag = re.findall(r'videos/(.*)-.*', video)[0]
+                    vidnum = re.findall(r'videos/.*-(.*)_.*', video)[0]
+
+                    command = f"convert -background white -size x200 -fill '#9D38FE' -font {font} -gravity center " \
+                                f"-pointsize 40 label:{game_tag.upper()} -extent 110%x {ROOT_DIR}/tmp/{q}/tag.png "
+                    os.system(command)
+
+                    command = f"convert -gravity east {ROOT_DIR}/resources/twitch.png -background white -resize " \
+                                f"100x100 -extent 180x200 -gravity east {ROOT_DIR}/tmp/{q}/logo-with-background.png "
+                    os.system(command)
+
+                    command = f"convert +append {ROOT_DIR}/tmp/{q}/logo-with-background.png {ROOT_DIR}/tmp/{q}/tag.png {ROOT_DIR}/tmp/{q}/tag-with-logo.png"
+                    os.system(command)
+
+                    command = f"convert {ROOT_DIR}/tmp/{q}/tag-with-logo.png -resize 300x300 {ROOT_DIR}/tmp/{q}/tag-rounded-resized.png"
+                    os.system(command)
+
+                    final_file_name = f"{ROOT_DIR}/{FACES_PATH}/short{vidnum}.mp4"
+                    command = f"ffmpeg -c:v h264_cuvid -i {tmp_video} -i {ROOT_DIR}/tmp/{q}/tag-rounded-resized.png -filter_complex \"[0:v][" \
+                                f"1:v] overlay=W/2-w/2:H/1.2+20'\" -pix_fmt yuv420p -t 58 -c:a copy -c:v h264_nvenc {final_file_name}"
+                    os.system(command)
+
+                    try:
+                        os.system(f"rm -r {ROOT_DIR}/tmp/{q}/")
+                        os.remove(tmp_video)
+                        os.remove(file_name)
+                    except:
+                        nothing11= True
+                        
+                    cap.release()
+                    break
+            else:
                 break
-        else:
-            break
 
-        ##cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
 
-T = 8 #number of threads
+if __name__ == "__main__":
+    num_process = 1
 
-# Download videos
-##download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
+    # Download videos
+    ##download.main(f"{ROOT_DIR}/resources/clips.txt", f"{ROOT_DIR}/videos/", '720')
 
-# Check faces directory
-check_directory(f"{ROOT_DIR}/{RESULTS_PATH}")
-check_directory(f"{ROOT_DIR}/{FACES_PATH}")
+    # Check faces directory
+    check_directory(f"{ROOT_DIR}/{RESULTS_PATH}")
+    check_directory(f"{ROOT_DIR}/{FACES_PATH}")
 
-list_of_videos = get_videos(DATASET_PATH)
-chunks = np.array_split(np.array(list_of_videos), T)
-chunk0 = [chunks[0]]
-chunk1 = [chunks[1]]
+    list_of_videos = get_videos(DATASET_PATH)
+    chunks = np.array_split(np.array(list_of_videos), num_process)
+    process_pool = multiprocessing.Pool(processes=num_process, initializer=init_worker)
 
-"""
-new_process_1 = Process(target=video_face_cropper,args=(chunk0))
-new_process_2 = Process(target=video_face_cropper,args=(chunk1))
+    init_worker()
+    video_face_cropper(list_of_videos)
 
-# Starts both processes
-new_process_1.start()
-new_process_2.start()
-
-new_process_1.join()
-new_process_2.join()
-"""
-
-
-
-
-"""
-processes = []
-for n in range(T):
-    dataset = [chunks[n]]
-    t = Process(target=video_face_cropper,args=(dataset))
-    t.start()
-    processes.append(t)
-
-# Wait all threads to finish.
-for t in processes:
-    t.join()
-
-"""
-
-
-threads = []
-for n in range(T):
-    dataset = [chunks[n]]
-    t = Thread(target=video_face_cropper, args=(dataset))
-    t.start()
-    threads.append(t)
-
-# Wait all threads to finish.
-for t in threads:
-    t.join()
-
-
-###video_face_cropper(list_of_videos)
-
-print("End of Process !")
-
-"""
-T=1   #number of threads
-threads = []
-for n in range(T):
-    chunk = chunks[n]
-    t = Thread(target=video_face_cropper, args=(chunk))
-    t.start()
-    threads.append(t)
-
-# Wait all threads to finish.
-for t in threads:
-    t.join()
-
-print ("done mf")
-"""
+    print("End of Process !")
