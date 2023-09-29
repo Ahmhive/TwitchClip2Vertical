@@ -87,7 +87,7 @@ def video_face_cropper(dataset):
 
                     start_sec = randint(0,14000)
                     yt_start=(timedelta(seconds=start_sec))
-                    
+
 
                     command = f"ffmpeg -c:v h264_cuvid -crop 150x150x370x370 -resize 1080x840 -i {ROOT_DIR}/background.mp4 -ss {yt_start} -t 58 -c:a copy -c:v h264_nvenc -b:v 5M {ROOT_DIR}/tmp/{q}/tmp_back.mp4"# makkes background
                     os.system(command)
@@ -96,7 +96,7 @@ def video_face_cropper(dataset):
                     os.system(command)
                     
                     ###face =5555
-                    if face== 1:
+                    if len(face)== 1:
                         #joins tmp2 with facecam into tmo_video
                         tmp_video = f"{ROOT_DIR}/tmp/{q}/tmp3.mp4"
                         command = f"ffmpeg -c:v h264_cuvid -i {ROOT_DIR}/tmp/{q}/tmp2.mp4 -c:v h264_cuvid -i {file_name} -filter_complex \"overlay=x=(W/2)-(w/2):y=(H/2)+(h*1/4)\" -c:v h264_nvenc {tmp_video}"
