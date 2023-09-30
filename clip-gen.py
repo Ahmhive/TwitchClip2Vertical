@@ -156,6 +156,10 @@ if __name__ == "__main__":
     list_of_videos = get_videos(DATASET_PATH)
     chunks = np.array_split(np.array(list_of_videos), num_process)
     process_pool = multiprocessing.Pool(processes=num_process, initializer=init_worker)
+    print("list_of_videos",list_of_videos)
+    print("chunks", chunks)
+    print("process_pool", process_pool)
+
 
     init_worker()
     video_face_cropper(list_of_videos)
