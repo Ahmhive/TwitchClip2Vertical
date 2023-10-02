@@ -112,14 +112,14 @@ def video_face_cropper(dataset):
                                 f"-pointsize 40 label:{game_tag.upper()} -extent 110%x {ROOT_DIR}/tmp/{q}/tag.png "
                     os.system(command)
 
-                    command = f"convert -gravity east {ROOT_DIR}/resources/twitch.png -background white -resize " \
-                                f"100x100 -extent 180x200 -gravity east {ROOT_DIR}/tmp/{q}/logo-with-background.png "
+                    command = f"convert -gravity east {ROOT_DIR}/resources/twitch2.png -background white -resize " \
+                                f"400x200 -extent 480x200 -gravity east {ROOT_DIR}/tmp/{q}/logo-with-background.png "
                     os.system(command)
 
                     command = f"convert +append {ROOT_DIR}/tmp/{q}/logo-with-background.png {ROOT_DIR}/tmp/{q}/tag.png {ROOT_DIR}/tmp/{q}/tag-with-logo.png"
                     os.system(command)
 
-                    command = f"convert {ROOT_DIR}/tmp/{q}/tag-with-logo.png -resize 300x300 {ROOT_DIR}/tmp/{q}/tag-rounded-resized.png"
+                    command = f"convert {ROOT_DIR}/tmp/{q}/tag-with-logo.png -resize 500x300 {ROOT_DIR}/tmp/{q}/tag-rounded-resized.png"
                     os.system(command)
 
                     final_file_name = f"{ROOT_DIR}/{FACES_PATH}/short{vidnum}.mp4"
