@@ -145,6 +145,11 @@ def video_face_cropper(dataset):
 if __name__ == "__main__":
     num_process = 4
 
+    os.system(f"rm -r {ROOT_DIR}/videos")
+    os.system(f"mkdir {ROOT_DIR}/videos")
+    os.system(f"rm -r {ROOT_DIR}/results")
+
+
     twitchname = sys.argv[1]
     command = f"python3 getvods.py {twitchname}"
     os.system(command)
