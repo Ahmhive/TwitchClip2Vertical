@@ -145,8 +145,8 @@ def video_face_cropper(dataset):
 if __name__ == "__main__":
     num_process = 4
 
-    passedname = sys.argv[1]
-    command = f"python3 getvods.py {passedname}"
+    twitchname = sys.argv[1]
+    command = f"python3 getvods.py {twitchname}"
     os.system(command)
 
     # Download background
@@ -169,5 +169,15 @@ if __name__ == "__main__":
     init_worker()
     video_face_cropper(list_of_videos)
 
+    #send to vultr
+    directory = f"{ROOT_DIR}/{FACES_PATH}"
+
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+
+        if os.path.isfile(f):
+            print(f)
+            command = f"echo n |  pscp -pw '2d(Ca8x-G7ouqdiZ' {f} root@45.76.136.237:/root/Desktop/{twitchname}/video-post/downloads"
+            os.system(command)
     
     print("End of Process !")
