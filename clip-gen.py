@@ -145,9 +145,14 @@ def video_face_cropper(dataset):
 if __name__ == "__main__":
     num_process = 4
 
+    passedname = sys.argv[1]
+    command = f"python3 getvods.py {passedname}"
+    os.system(command)
+
     # Download background
     command = f"yt-dlp  -o background.mp4 -f mp4  https://www.youtube.com/embed/RMeYn4E5WMY"
     os.system(command)
+
 
     # Check faces directory
     check_directory(f"{ROOT_DIR}/{RESULTS_PATH}")
@@ -164,4 +169,5 @@ if __name__ == "__main__":
     init_worker()
     video_face_cropper(list_of_videos)
 
+    
     print("End of Process !")
