@@ -83,7 +83,7 @@ headers = {
     'Authorization': f'Bearer {access_token}'
 }
 params = {
-    'first': 10,
+    'first': 6,
     'sort': 'time',
     'type': 'archive'
 }
@@ -104,7 +104,7 @@ if response.status_code == 200:
     vod_links10 = ["https://www.twitch.tv/videos/"+vod['id'] for vod in sorted_vods]
     print(vod_links10)
 
-    vod_links = vod_links10[0:4]
+    vod_links = vod_links10[0:3]
     print (vod_links)
     # Print the sorted VOD IDs and durations
     #for vod_id, vod_duration in zip(vod_ids, vod_durations):
