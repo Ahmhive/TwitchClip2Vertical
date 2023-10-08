@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
         if os.path.isfile(f):
             print(f)
-            command = f"echo n |  pscp -pw '2d(Ca8x-G7ouqdiZ' {f} root@45.76.136.237:/root/Desktop/{twitchname}/video-post/downloads"
+            command = f"echo n |  pscp -pw '2d(Ca8x-G7ouqdiZ' {f} root@45.76.136.237:/root/Desktop/{twitchname}/temp"
             os.system(command)
     
     print("End of Process !")
